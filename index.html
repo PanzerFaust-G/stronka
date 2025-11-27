@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Serwer Minecraft</title>
+<style>
+  body{background:#000;color:#0f0;font-family:Arial;margin:0;display:flex;justify-content:center;align-items:center;height:100vh;}
+  .box{background:#111;padding:40px;border-radius:20px;box-shadow:0 0 30px #0f0;max-width:400px;width:90%;text-align:center;}
+  input,button{padding:12px;margin:8px 0;width:100%;border:none;border-radius:8px;font-size:16px;box-sizing:border-box;}
+  button{background:#0f0;color:#000;cursor:pointer;font-weight:bold;}
+  button:hover{background:#0c0;}
+  .tab{display:none;}
+  .active{display:block;}
+  a{color:#0f0;cursor:pointer;text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>MINECRAFT SERWER</h1>
+
+  <div id="login" class="tab active">
+    <h2>Logowanie</h2>
+    <input type="text" id="lnick" placeholder="Nick">
+    <input type="password" id="lpass" placeholder="Hasło">
+    <button onclick="zaloguj()">ZALOGUJ</button>
+    <p><a onclick="pokaz('rej')">Nie masz konta? Zarejestruj się</a></p>
+  </div>
+
+  <div id="rej" class="tab">
+    <h2>Rejestracja</h2>
+    <input type="text" id="rnick" placeholder="Nick">
+    <input type="email" id="remail" placeholder="Email">
+    <input type="password" id="rpass" placeholder="Hasło">
+    <button onclick="rejestruj()">ZAREJESTRUJ</button>
+    <p><a onclick="pokaz('login')">Masz konto? Zaloguj się</a></p>
+  </div>
+
+  <h3 id="info"></h3>
+</div>
+
+<script>
+function pokaz(x){ document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); document.getElementById(x).classList.add('active'); }
+async function ip(){return(await fetch('https://api.ipify.org?format=json')).json().then(r=>r.ip)}
+
+async function rejestruj(){
+  const nick=document.getElementById('rnick').value.trim();
+  const email=document.getElementById('remail').value.trim();
+  const pass=document.getElementById('rpass').value;
+  if(!nick||!email||!pass) return info("Wypełnij wszystko!",1);
+  const ipa=await ip();
+  const r=await fetch('/.netlify/functions/rej',{method:'POST',body:JSON.stringify({nick,email,pass,ip:ipa})});
+  info(r.ok?`Konto utworzone!<br>Nick: ${nick}<br>IP: ${ipa}`:`Błąd: `+(await r.text()),r.ok?0:1);
+}
+
+async function zaloguj(){
+  const nick=document.getElementById('lnick').value.trim();
+  const pass=document.getElementById('lpass').value;
+  if(!nick||!pass) return info("Wypełnij wszystko!",1);
+  const ipa=await ip();
+  const r=await fetch('/.netlify/functions/log',{method:'POST',body:JSON.stringify({nick,pass,ip:ipa})});
+  info(r.ok?`Zalogowano!<br>Witaj ${nick}<br>Twoje IP: ${ipa}`:`Zły nick lub hasło`,r.ok?0:1);
+}
+
+function info(t,r){document.getElementById('info').innerHTML=t; document.getElementById('info').style.color=r?'red':'#0f0';}
+</script>
+</body>
+</html>
